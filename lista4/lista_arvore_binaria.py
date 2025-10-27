@@ -349,6 +349,183 @@ def is_completa(root):
     
     return True
 
+'''
+13. EXPRESSÃO PREFIXADA: + / 4 - 3 1 - * 8 / 6 2 7
+REGRA: OPERADOR antes dos OPERANDOS
+- Leitura: DA ESQUERDA para DIREITA
+-  Operador → cria nó e busca 2 filhos recursivamente
+
+ÁRVORE BINÁRIA CORRESPONDENTE:
+
+        +
+       / \
+      /   \
+     /     \
+    /       \
+   /         -
+  /         / \
+ /         *   7
+/         / \
+/         8   /
+/           / \
+/           6   2
+/
+/ \
+4   -
+   / \
+  3   1
+
+PASSO A PASSO DA CONSTRUÇÃO:
++ → operador raiz
+├── / → filho esquerdo de +
+│   ├── 4 → filho esquerdo de /
+│   └── - → filho direito de /
+│       ├── 3 → filho esquerdo de -
+│       └── 1 → filho direito de -
+└── - → filho direito de +
+    ├── * → filho esquerdo de -
+    │   ├── 8 → filho esquerdo de *
+    │   └── / → filho direito de *
+    │       ├── 6 → filho esquerdo de /
+    │       └── 2 → filho direito de /
+    └── 7 → filho direito de -
+
+EXPRESSÃO COMPLETA: (4 / (3 - 1)) + ((8 * (6 / 2)) - 7)
+'''
+
+'''
+14. EXPRESSÃO POSFIXADA: 5 7 / 3 * 1 - 8 2 4 6 + / * +
+REGRA: OPERANDOS antes do OPERADOR  
+- Leitura: DA ESQUERDA para DIREITA
+- Usamos PILHA: empilha operandos, quando acha operador, desempilha 2 e faz operação
+
+ÁRVORE BINÁRIA CORRESPONDENTE:
+
+          +
+         / \
+        /   \
+       /     \
+      /       \
+     /         *
+    /         / \
+   /         /   \
+  /         /     \
+ /         /       \
+-         8        /
+/ \              / \
+/   \            /   \
+*     1         2     +
+      / \              / \
+     /   3            4   6
+    / \
+   5   7
+
+PASSO A PASSO DA CONSTRUÇÃO (USANDO PILHA):
+5 → empilha
+7 → empilha
+/ → desempilha 7 e 5, cria /(5,7), empilha
+3 → empilha
+* → desempilha 3 e /, cria *(/,3), empilha  
+1 → empilha
+- → desempilha 1 e *, cria -(*,1), empilha
+8 → empilha
+2 → empilha
+4 → empilha
+6 → empilha
++ → desempilha 6 e 4, cria +(4,6), empilha
+/ → desempilha + e 2, cria /(2,+), empilha
+* → desempilha / e 8, cria *(8,/), empilha
++ → desempilha * e -, cria +(-,*), empilha
+
+EXPRESSÃO COMPLETA: (((5 / 7) * 3) - 1) + (8 * (2 / (4 + 6)))
+'''
+
+'''
+15. EXPRESSÃO INFIXADA: (8 - ((2+7)/4)) + (((5 / 6)*3)-1)
+REGRA: OPERADOR entre os OPERANDOS
+- Mais difícil de construir diretamente
+- Precisamos respeitar a PRECEDÊNCIA e PARÊNTESES
+
+ÁRVORE BINÁRIA CORRESPONDENTE:
+
+          +
+         / \
+        /   \
+       /     \
+      /       \
+     -         -
+    / \       / \
+   /   \     /   \
+  8     /   *     1
+       / \   / \
+      +   4 /   3
+     / \   / \
+    2   7 5   6
+
+PASSO A PASSO DA CONSTRUÇÃO:
++ → operador principal (raiz)
+├── - → lado esquerdo: (8 - ((2+7)/4))
+│   ├── 8 → primeiro operando
+│   └── / → divisão: ((2+7)/4)
+│       ├── + → adição: (2+7)
+│       │   ├── 2
+│       │   └── 7
+│       └── 4
+└── - → lado direito: (((5/6)*3)-1)
+    ├── * → multiplicação: ((5/6)*3)
+    │   ├── / → divisão: (5/6)
+    │   │   ├── 5
+    │   │   └── 6
+    │   └── 3
+    └── 1
+
+EXPRESSÃO COMPLETA: (8 - ((2+7)/4)) + (((5/6)*3)-1)
+'''
+
+'''
+16. ANÁLISE DE RELAÇÕES EM ÁRVORES BINÁRIAS
+
+DEFINIÇÕES:
+- G: Árvore binária genérica não vazia
+- P: Árvore binária própria não vazia (todo nó tem 0 ou 2 filhos)
+- e₉, eₚ: Número de nós externos (folhas)
+- i₉, iₚ: Número de nós internos  
+- n₉, nₚ: Número total de nós
+- h₉, hₚ: Altura da árvore
+
+VERDADEIRO OU FALSO:
+
+i. 2hₚ + 1 ≤ nₚ → ✅ VERDADEIRO
+   Justificativa: Em árvore própria, o mínimo de nós ocorre na árvore degenerada
+   onde cada nó interno tem um filho interno e um folha. Nesse caso: nₚ = 2hₚ + 1
+
+ii. hₚ + 1 ≤ eₚ → ✅ VERDADEIRO
+   Justificativa: Em árvore própria, o mínimo de folhas é hₚ + 1 (árvore degenerada)
+
+iii. n₉ = 2e₉ - 1 → ❌ FALSO
+   Justificativa: Esta relação só vale para árvores próprias. Para árvore genérica:
+   Exemplo: árvore com raiz e um filho → n₉ = 2, e₉ = 1 → 2 ≠ 2×1 - 1 = 1
+
+iv. 1 ≤ e₉ ≤ 2ʰ₉ → ✅ VERDADEIRO
+   Justificativa: 
+   - Mínimo: 1 folha (árvore degenerada em lista)
+   - Máximo: 2ʰ₉ folhas (árvore cheia)
+
+v. h₉ ≤ i₉ ≤ 2ʰ₉ - 1 → ✅ VERDADEIRO
+   Justificativa:
+   - Mínimo: h₉ nós internos (árvore degenerada)
+   - Máximo: 2ʰ₉ - 1 nós internos (árvore cheia sem folhas do último nível)
+
+RESUMO:
+| Item | Proposição | Resultado | Explicação |
+|------|------------|-----------|------------|
+| i | 2hₚ + 1 ≤ nₚ | ✅ Verdadeiro | Mínimo em árvore própria degenerada |
+| ii | hₚ + 1 ≤ eₚ | ✅ Verdadeiro | Mínimo de folhas em árvore própria |
+| iii | n₉ = 2e₉ - 1 | ❌ Falso | Só vale para árvores próprias |
+| iv | 1 ≤ e₉ ≤ 2ʰ₉ | ✅ Verdadeiro | Limites de folhas |
+| v | h₉ ≤ i₉ ≤ 2ʰ₉ - 1 | ✅ Verdadeiro | Limites de nós internos |
+'''
+
 # =============================================================================
 # EXEMPLOS DE USO
 # =============================================================================
