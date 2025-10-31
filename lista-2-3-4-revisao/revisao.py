@@ -1,3 +1,5 @@
+from stack import Stack
+from queue import Queue
 '''
 1 - . Dada a expressão pós-fixa 8 3 2 * + 5 1 - / 4 +, avalie o resultado usando uma pilha. 
 a) Mostre o estado da pilha após cada operação (push de operandos e aplicação de 
@@ -69,81 +71,183 @@ b) Teste com:
 "{[a+b*(c-d)] + 2}" (válida)
 '''
 
-def verificar_balanceamento(expressao):
-    """
-    Verifica se uma string com (), [], {} está balanceada.
-    Retorna (True, -1, "") se balanceada, ou (False, posicao, esperado) se inválida.
-    """
+
+def verificaFechamento(f):
+    if f == "":
+        return True  # ✅ String vazia é balanceada
     
-    # Pilha para guardar os símbolos de abertura que encontramos
-    pilha = []
-    
-    # Dicionário que mapeia cada símbolo de FECHAMENTO para seu correspondente de ABERTURA
-    # Exemplo: quando encontramos ')', sabemos que deveria ter um '(' no topo da pilha
+    abert = {'{', '[', '('}
+    fech = {'}', ']', ')'}
     pares = {')': '(', ']': '[', '}': '{'}
+    s = Stack()
     
-    # Percorre cada caractere da string, i = posição, char = caractere
-    for i, char in enumerate(expressao):
-        
-        # SE É SÍMBOLO DE ABERTURA: (, [, {
-        if char in '([{':
-            # Empilha o símbolo de abertura E sua posição (para poder reportar erro depois)
-            # Guardamos a posição para saber onde estava o símbolo que ficou sem fechar
-            pilha.append((char, i))
-        
-        # SE É SÍMBOLO DE FECHAMENTO: ), ], }
-        elif char in ')]}':
-            
-            # ERRO 1: Fechamento sem abertura correspondente
-            # Se a pilha está vazia, significa que encontramos um fechamento sem abertura antes
-            if not pilha:
-                return (False, i, f"abertura para '{char}'")
-            
-            # Tira o último símbolo de abertura da pilha
-            # topo = símbolo, pos_topo = posição onde ele estava
-            topo, pos_topo = pilha.pop()
-            
-            # Pega qual símbolo de abertura esperamos para este fechamento
-            # Exemplo: para ')', esperamos '('
-            esperado = pares[char]
-            
-            # ERRO 2: Fechamento do tipo errado
-            # Se o símbolo no topo não é o que esperávamos
-            if topo != esperado:
-                return (False, i, f"'{esperado}' em vez de '{char}'")
+    for char in f:
+        if char in abert:
+            s.push(char)
+        elif char in fech:  # ✅ Use 'elif' em vez de outro 'if'
+            if s.isEmpty():
+                return False
+            topo = s.pop()
+            if topo != pares[char]:
+                return False
+        # ✅ Outros caracteres são ignorados (OK)
     
-    # ERRO 3: Sobraram aberturas sem fechamento
-    # Se depois de processar toda a string ainda tem símbolos na pilha
-    if pilha:
-        # Pega o primeiro símbolo que ficou sem fechar (e sua posição)
-        char, pos = pilha[0]
-        
-        # Descobre qual fechamento era esperado para esta abertura
-        fechamento_esperado = {'(': ')', '[': ']', '{': '}'}[char]
-        
-        return (False, pos, f"'{fechamento_esperado}' para fechar '{char}'")
+    return s.isEmpty()
     
-    # SE CHEGOU ATÉ AQUI: tudo certo! String balanceada
-    return (True, -1, "")
+''''Considere um deque inicialmente vazio, mostre o estado do deque e os valores retornados após a execução de cada uma das operações abaixo:
+addFirst(4), addLast(8), addLast(9), addLast(5), rear(), deleteFirst(), deleteLast(), size(), addFirst(10), first(), rear(), addFirst(6)
+-, 4
+-, 4 8 
+-, 4 8 9 
+-, 4 8 9 5
+5, 4 8 9 5
+4, 8 9 5
+5, 8 9 
+2, 8 9 
+-, 10 8 9 
+10, 10 8 9 
+9, 10 8 9 
+-, 6 10 8 9 
+'''
+'''
+Escreva uma função em Python para determinar se uma palavra é palíndromo. 
+Você pode usar qualquer combinação de pilha, fila ou deque, mas apenas uma de cada tipo. 
+Por exemplo: uma pilha; uma pilha e uma fila; uma pilha e um deque; assim por diante.
+'''
+def palindromo(p):
+    s = Stack()
+    for char in p:
+        s.push(char)
+    for char in p:
+        if s.pop() != char:
+            return False
+    return True
+    
+'''
+Implemente uma pilha usando apenas uma fila.
+'''
+class StackUsingQueues:
+    def __init__(self, limit=5):
+        self.q1 = Queue(limit)  # Fila principal que armazena os elementos
+        self.q2 = Queue(limit)  # Fila auxiliar para operações de push
+        self.limit = limit
 
-# TESTES COM OS EXEMPLOS DO ENUNCIADO
-testes = [
-    "{[()]}()",        # ✅ Válida - todos os pares abrem/fecham corretamente
-    "[({)]}",          # ❌ Inválida - fechamento errado na posição 3
-    "((())",           # ❌ Inválida - sobra abertura na posição 0  
-    "{[a+b*(c-d)] + 2}" # ✅ Válida - ignora letras e números, só verifica ()[]{}
-]
+    def push(self, item):
+        # Adiciona o novo elemento na fila vazia (q2)
+        # Exemplo: push(1) → q2 = [1], q1 = []
+        self.q2.enQueue(item)
 
-# Testa cada caso
-for expressao in testes:
-    # Chama a função para verificar
-    valido, posicao, esperado = verificar_balanceamento(expressao)
+        # Move todos os elementos de q1 para q2 (mantém a ordem de pilha)
+        # Exemplo: q1 = [2, 1], q2 = [3] 
+        #          → q1 = [], q2 = [3, 2, 1] (3 no início - topo da pilha)
+        while not self.q1.isEmpty():
+            self.q2.enQueue(self.q1.deQueue())
+
+        # Troca as referências: q1 vira a fila com todos os elementos
+        # q2 vazia fica pronta para o próximo push
+        # Exemplo: q1 = [3, 2, 1], q2 = []
+        self.q1, self.q2 = self.q2, self.q1
+
+    def pop(self):
+        # Remove do início de q1 (que é o topo da pilha)
+        # Exemplo: q1 = [3, 2, 1] → deQueue() retorna 3
+        if self.q1.isEmpty():
+            print("Stack Underflow")
+            return None
+        return self.q1.deQueue()
+
+    def peek(self):
+        # Retorna o elemento do início de q1 (topo da pilha) sem remover
+        # Exemplo: q1 = [3, 2, 1] → retorna 3
+        if self.q1.isEmpty():
+            print("Stack vazia")
+            return None
+        return self.q1.que[self.q1.front] 
+
+    def isEmpty(self):
+        # Pilha está vazia se q1 está vazia
+        return self.q1.isEmpty()
+
+    def size(self):
+        # Tamanho da pilha é o tamanho de q1
+        return self.q1.size
     
-    # Mostra o resultado
-    if valido:
-        print(f"'{expressao}' → ✅ VÁLIDA")
-    else:
-        print(f"'{expressao}' → ❌ INVÁLIDA")
-        print(f"    Erro na posição {posicao}: '{expressao[posicao]}'")
-        print(f"    Era esperado: {esperado}")
-    print()  # Linha em branco entre os testes
+'''
+Crie uma função que inverta os últimos k elementos de uma fila de inteiros.
+'''
+def invert(q, k):
+    if q.isEmpty():
+        return None
+    s = Stack()
+    for i in range(k):
+        s.push(q.deQueue())
+    while not s.isEmpty():
+        q.enQueue(s.pop())
+    for i in range(q.size - k):
+        q.enQueue(q.deQueue())
+    return q
+
+'''
+Considere uma árvore binária própria na qual todas as folhas estão no último ou no penúltimo nível, responda as questões:
+Qual é o número mínimo de folhas, caso a árvore tenha altura h?
+Qual é o número máximo de folhas, caso a árvore tenha altura h?
+Para árvore própria com folhas nos últimos 2 níveis:
+
+MÍNIMO de folhas = 2^(h-1)
+
+Quando TODAS as folhas estão no PENÚLTIMO nível
+
+MÁXIMO de folhas = 2^h
+
+Quando TODAS as folhas estão no ÚLTIMO nível
+'''
+
+'''
+Escreva uma função para determinar o número de nós de uma árvore binária.
+'''
+
+def verificarNósInterativo(r:BinTree):
+    if r is None:
+        return False 
+    s = Stack()
+    s.push(r)
+    count = 0
+    while not s.isEmpty():
+        n = s.pop()
+        count += 1
+        if n.left:
+            s.push(n.left)
+        if n.right:
+            s.push(n.right)
+    return count
+
+def verificarNós(r:BinTree):
+    if r is None:
+        return 0
+    return 1 + verificarNós(r.left) + verificarNós(r.right)
+
+'''
+Crie uma função que implemente o percurso em pré-ordem em uma árvore binária usando uma pilha de dados.
+'''
+def preorder_iterative(root):
+    """
+    Percurso pré-ordem (raiz-esquerda-direita) usando pilha
+    """
+    if root is None:
+        return []
+    
+    result = []        # Lista para armazenar a ordem dos nós
+    stack = [root]     # Pilha inicia com a raiz
+    
+    while stack:
+        node = stack.pop()         # Remove o nó do topo
+        result.append(node.data)   # Visita a RAIZ
+        
+        # Empilha DIREITA primeiro (será processada depois da ESQUERDA)
+        if node.right:
+            stack.append(node.right)
+        # Empilha ESQUERDA por último (será processada primeiro)
+        if node.left:
+            stack.append(node.left)
+    
+    return result
